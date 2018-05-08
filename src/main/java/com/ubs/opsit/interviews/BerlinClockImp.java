@@ -22,16 +22,22 @@ public class BerlinClockImp implements TimeConverter {
 
 	@Override
 	public String convertTime(String aTime) {
+		LOG.info("convertTime() Begin..");
 		String berlinTime = null;
 		try {
 			hours = 0;
 			minutes = 0;
 			seconds = 0;
 			validateTime(aTime);
-			berlinTime = processTime();
+			LOG.info("Validation of time success");
+			berlinTime = processGivenTime();
+			LOG.info("Process to convert into Berlin time gets completed.");
+			LOG.debug("Time - " + aTime + " convert into Berling time - \n"
+					+ berlinTime);
 		} catch (TimeNotProvidedException | InvalidTimeProvidedException e) {
 			LOG.error(e.getMessage(), e);
 		}
+		LOG.info("convertTime() Ends..");
 		return berlinTime;
 	}
 
@@ -45,6 +51,7 @@ public class BerlinClockImp implements TimeConverter {
 	 */
 	private void validateTime(String aTime) throws TimeNotProvidedException,
 			InvalidTimeProvidedException {
+		LOG.info("validateTime() Begin..");
 		if (aTime == null)
 			throw new TimeNotProvidedException(TIME_NOT_PROVIDED_ERROR);
 
@@ -61,13 +68,15 @@ public class BerlinClockImp implements TimeConverter {
 			throw new InvalidTimeProvidedException(NUMERIC_TIME_ERROR);
 		}
 
+		if (hours == 24 && (seconds > 0 | minutes > 0))
+			throw new InvalidTimeProvidedException("Time greater than 24 hours");
 		if (hours < 0 || hours > 24)
 			throw new InvalidTimeProvidedException("Hours out of bounds.");
 		if (minutes < 0 || minutes > 59)
 			throw new InvalidTimeProvidedException("Minutes out of bounds.");
 		if (seconds < 0 || seconds > 59)
 			throw new InvalidTimeProvidedException("Seconds out of bounds.");
-
+		LOG.info("validateTime() Ends..");
 	}
 
 	/**
@@ -75,36 +84,35 @@ public class BerlinClockImp implements TimeConverter {
 	 * 
 	 * @return BerlinTime
 	 */
-	private String processTime() {
-
+	private String processGivenTime() {
+		LOG.info("processGivenTime() Begin..");
 		String l1 = (seconds % 2 == 0) ? "Y" : "0";
-		String l2 = rowString(hours / 5, 4, "R");
-		String l3 = rowString(hours % 5, 4, "R");
-		String l4 = rowString(minutes / 5, 11, "Y").replaceAll("YYY", "YYR");
-		String l5 = rowString(minutes % 5, 4, "Y");
-
+		String l2 = generateRow(hours / 5, 4, "R");
+		String l3 = generateRow(hours % 5, 4, "R");
+		String l4 = generateRow(minutes / 5, 11, "Y").replaceAll("YYY", "YYR");
+		String l5 = generateRow(minutes % 5, 4, "Y");
+		LOG.info("processGivenTime() Ends..");
 		return String
 				.join(NEW_LINE_OPERATOR, Arrays.asList(l1, l2, l3, l4, l5));
 
 	}
 
 	/**
-	 * Creates a string for each row of the berlin clock.
+	 * Creates a string for each row of the Berlin clock.
 	 * 
 	 * @param lightLights
 	 * @param lightsInRow
 	 * @param lampType
 	 * @return A string representing a single row of the clock.
 	 */
-	private String rowString(int lightLights, int lightsInRow, String lampType) {
-
+	private String generateRow(int lightLights, int lightsInRow, String lampType) {
+		LOG.info("generateRow() Begin..");
 		int unlightLights = lightsInRow - lightLights;
 		String light = String.join("",
 				Collections.nCopies(lightLights, lampType));
 		String unlight = String.join("",
 				Collections.nCopies(unlightLights, "0"));
-
+		LOG.info("generateRow() Ends..");
 		return light + unlight;
 	}
-
 }
